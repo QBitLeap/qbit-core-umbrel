@@ -47,10 +47,15 @@ class NetworkPolicyTests(unittest.TestCase):
                               .replace("/settings", str(settings)).replace("/opt/qbit/bin/qbitd", str(binary)))
             environment = {**os.environ, "QBIT_CHAIN": "main", "QBIT_TEST_ARGV": str(argv)}
             environment.pop("QBIT_NETWORK_ACTIVE", None)
+            environment.pop("QBIT_WALLET_ENABLED", None)
             def start():
                 subprocess.run(["sh", str(script), "serve"], env=environment, check=True)
                 return argv.read_text().splitlines()
             self.assertIn("-networkactive=1", start())
+            self.assertIn("-disablewallet=1", start())
+            environment["QBIT_WALLET_ENABLED"] = "1"
+            self.assertIn("-disablewallet=0", start())
+            del environment["QBIT_WALLET_ENABLED"]
             core = Core()
             policy = NetworkPolicy(core, "main", "1", settings / "network-active")
             policy.set(False)

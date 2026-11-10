@@ -24,6 +24,8 @@ current blocks, known headers, verification progress and peer connections.
 Use its networking switch to pause or resume; downloaded blocks are preserved.
 The switch uses Umbrel's app access settings. Open Qbit Core through Umbrel.
 Read/API credentials cannot change networking or access wallets.
+To use a local Core wallet from a LEAP or qord terminal, set `QBIT_WALLET_ENABLED=1`
+in the Core app settings. Wallet RPC stays on Core's loopback interface.
 
 The networking choice is saved in this app's own `control` volume and
 survives restarts and app updates. A fresh chain directory uses the default. `QBIT_NETWORK_ACTIVE` sets the initial/default choice;

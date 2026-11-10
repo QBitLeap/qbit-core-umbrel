@@ -40,7 +40,8 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
               "pids_limit": 128, "init": True,
               "tmpfs": ["/tmp:rw,nosuid,nodev,noexec,size=32m,mode=1777"]}
     core = {**shared, "image": core_image, "command": ["serve"],
-            "environment": {"QBIT_CHAIN": chain, "QBIT_NETWORK_ACTIVE": "${QBIT_NETWORK_ACTIVE:-1}"},
+            "environment": {"QBIT_CHAIN": chain, "QBIT_NETWORK_ACTIVE": "${QBIT_NETWORK_ACTIVE:-1}",
+                            "QBIT_WALLET_ENABLED": "${QBIT_WALLET_ENABLED:-0}"},
             "volumes": ["${APP_DATA_DIR}/data/core:/data", "${APP_DATA_DIR}/data/auth:/auth", "control:/settings"],
             "stop_grace_period": "2m", "mem_limit": "1536m", "cpus": 2,
             "healthcheck": {"test": ["CMD", "/opt/qbit/bin/qbit-cli", "-chain=" + chain,
@@ -73,12 +74,14 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
                             "core": core, "broker": broker, "ui": ui}, "volumes": {"control": {}}}
     manifest = {"manifestVersion": 2.0, "id": app_id, "storage": {"dataRoot": "data"},
                 "environment": [{"name": "QBIT_NETWORK_ACTIVE", "services": ["core", "broker"], "default": "1", "options": ["0", "1"],
-                  "note": "1 starts peer synchronization. The dashboard switch saves a choice across restarts; changing this setting resets that choice."}],
+                  "note": "1 starts peer synchronization. The dashboard switch saves a choice across restarts; changing this setting resets that choice."},
+                  {"name": "QBIT_WALLET_ENABLED", "services": ["core"], "default": "0", "options": ["0", "1"],
+                   "note": "Enable local Core wallets for LEAP and qord terminal commands."}],
                 "category": "finance", "name": "Qbit Core" + (" · Testnet4" if chain == "testnet4" else ""),
                 "version": package_version, "tagline": "Your own Qbit node and authenticated indexer reads",
                 "description": "Run an independent Qbit Core node with a browser status page. "
                     "Peer synchronization starts automatically. Pause or resume it with the dashboard switch. "
-                    "Wallets are disabled. Compatible indexers use authenticated read RPC; Core cookies stay private. "
+                    "Local Core wallets are optional. Compatible indexers use authenticated read RPC. "
                     "Each instance keeps its own network-specific data. This is an amd64 package candidate.",
                 "releaseNotes": "Configurable minute refresh, explicit sync progress, saved networking switch and automatic peer synchronization for new nodes.", "developer": "QBitLeap", "website": "https://github.com/Qbit-Org/qbit",
                 "dependencies": [], "repo": "https://github.com/QBitLeap/qbit-core-umbrel",
@@ -98,6 +101,7 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
                f'export {prefix}_UI_TOKEN="$(derive_entropy "${{app_entropy_identifier}}-status-ui")"\n'
                f'export {prefix}_CONTROL_TOKEN="$(derive_entropy "${{app_entropy_identifier}}-network-control")"\n')
     (output / "exports.sh").write_text(exports)
+    shutil.copyfile(ROOT / "scripts/qbit-terminal.sh", output / "qbit-terminal.sh")
     shutil.copyfile(ROOT / "icon.svg", output / "icon.svg")
     report = {"format": "qbit-core-app-package-v1", "appId": app_id, "chain": chain,
               "coreImage": core_image, "serviceImage": service_image,
