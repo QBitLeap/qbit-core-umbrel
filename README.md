@@ -1,8 +1,8 @@
 # Qbit Core for Umbrel
 
 Independent Qbit Core app source for umbrelOS 2.0 or newer. This is an amd64
-prerelease candidate; community-store publication and managed installation
-acceptance are still pending.
+prerelease. Published images have passed isolated Mainnet/Testnet4 integration;
+managed Umbrel installation and real-chain operation acceptance remain pending.
 
 Core cookies stay inside the Core app. Compatible indexers receive an authenticated, method-limited read endpoint.
 
