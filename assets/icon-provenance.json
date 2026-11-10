@@ -1,0 +1,27 @@
+{
+  "format": "umbrel-icon-provenance-v1",
+  "icon": "icon.svg",
+  "sourceKind": "owner-supplied Qbit Core artwork",
+  "sourceFileName": "QbitCore.png",
+  "sourceSha256": "88123ed521503f00d67c7b2000607fde9b033bfcc6fbf6b8b51982ac029f3dd5",
+  "iconSha256": "6a05504ddbd79dc12ea6b46eeab36a6b9aca23ce5bd33b8e94bb9fedf419e0b1",
+  "svgType": "embedded PNG artwork",
+  "vectorArtwork": false,
+  "rasterResampled": false,
+  "sourceDimensions": [
+    1024,
+    1024
+  ],
+  "viewport": [
+    512,
+    512
+  ],
+  "fit": "centered contain; no cropping/stretching",
+  "nonRenderingMetadataRemoved": [
+    "eXIf",
+    "iTXt"
+  ],
+  "embeddedPngSha256": "1a3c5d634871b1b137cd71ad3d1556e66f016cca746af2464c584cbe0a733ebd",
+  "pixelScanlinesSha256": "333f6ed57a457fa530ddd77b651a67cd84c23e5e27f438386307c47d01d83873",
+  "sourceArtworkUnchanged": true
+}

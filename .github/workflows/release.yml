@@ -1,0 +1,61 @@
+name: Image release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Explicit prerelease or release version
+        required: true
+        type: string
+      publish:
+        description: Publish images to GHCR after build and smoke checks
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+jobs:
+  image:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      - run: python -m unittest discover -s tests -v
+      - name: Login for an explicitly published release
+        if: inputs.publish
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and optionally publish
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          PUBLISH_IMAGES: ${{ inputs.publish }}
+        run: |
+          if [ "$PUBLISH_IMAGES" = true ]; then
+            python scripts/release_images.py "$RELEASE_VERSION" --publish
+          else
+            python scripts/release_images.py "$RELEASE_VERSION"
+          fi
+      - name: Retain image digest and source receipts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: image-release-receipts
+          if-no-files-found: ignore
+          include-hidden-files: true
+          path: |
+            .release/*/published-images.json
+            .release/*/release-context.json
+            .release/*/core/release-context.json
+            .release/*/context/source-manifest.json
+            .release/*/dependency-notices.json

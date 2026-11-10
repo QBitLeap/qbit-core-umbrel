@@ -1,0 +1,25 @@
+{
+  "format": "qbit-core-runtime-lock-v1",
+  "platform": "linux/amd64",
+  "baseImage": "debian:bookworm-20261104-slim@sha256:c67e92c8099ba22853ab4cfda7cfb494d253d6012ca82dee98ba8976772af018",
+  "artifact": {
+    "name": "qbit-1.0.0-x86_64-linux-gnu.tar.gz",
+    "version": "1.0.0",
+    "url": "https://github.com/Qbit-Org/qbit/releases/download/v1.0.0/qbit-1.0.0-x86_64-linux-gnu.tar.gz",
+    "sha256": "ae121af03263b55d530e3f3e8719a71362d0950cba82f54a2bc2d6c437a029b5"
+  },
+  "binaries": {
+    "qbitd": "d97c50154f87c4486a18204e3eb84fcab3b0c3d2e294942670589be1f48b3917",
+    "qbit-cli": "f1e927180ce38cf958dfa0d4f4eabfcdb2a0cc03d39fc0b04d7b49a3cee9bf84"
+  },
+  "license": {
+    "url": "https://raw.githubusercontent.com/Qbit-Org/qbit/v1.0.0/COPYING",
+    "sha256": "b028769f3852a9368ab10bd754ff01ebb741f84a2fa658c9aff82a631bc6ecfc"
+  },
+  "defaultCommand": [
+    "--version"
+  ],
+  "defaultUser": "1000:1000",
+  "networkAndDataConfiguration": "Supplied by later app package; absent from image",
+  "publicReleaseAuditComplete": false
+}

@@ -1,0 +1,8 @@
+ARG CORE_RUNTIME_IMAGE
+FROM ${CORE_RUNTIME_IMAGE}
+USER 0:0
+RUN mkdir -p /auth && chown 1000:1000 /auth && chmod 0700 /auth
+COPY --chmod=0555 start-core.sh /opt/qbit/start-core.sh
+USER 1000:1000
+ENTRYPOINT ["/bin/sh", "/opt/qbit/start-core.sh"]
+CMD ["--version"]

@@ -1,0 +1,8 @@
+FROM python:3.13.5-slim-bookworm@sha256:a7cb177dc60dfa77b223192cd0d9e6ce1aac7cf9a569023d68e7c91b6371a718
+COPY --chmod=0555 service /opt/qbit-app/service
+COPY LICENSE NOTICE /usr/share/doc/qbit-app/
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+USER 1000:1000
+WORKDIR /opt/qbit-app
+ENTRYPOINT ["python", "-m", "service.server"]
+CMD ["--help"]

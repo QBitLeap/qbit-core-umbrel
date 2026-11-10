@@ -1,0 +1,7 @@
+**
+!Dockerfile
+!.dockerignore
+!COPYING.qbit
+!runtime.lock.json
+!release/
+!release/qbit-1.0.0-x86_64-linux-gnu.tar.gz

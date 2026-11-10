@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qbit Core</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head>
+<body><main><p class="eyebrow">YOUR QBIT NODE</p><h1>Qbit Core</h1>
+<p id="message" role="status">Connecting to your node…</p>
+<dl><div><dt>Network</dt><dd id="network">—</dd></div><div><dt>Blocks</dt><dd id="blocks">—</dd></div>
+<div><dt>Headers</dt><dd id="headers">—</dd></div><div><dt>Peers</dt><dd id="connections">—</dd></div>
+<div><dt>Transaction index</dt><dd id="txindex">—</dd></div><div><dt>Chain and index</dt><dd id="ready">—</dd></div></dl>
+<p class="note">This app follows Qbit and provides authenticated read access for compatible indexers. Wallets are disabled.</p>
+<p class="note" id="setup" hidden>Peer networking is off. To synchronize, enable QBIT_NETWORK_ACTIVE in this app’s Umbrel settings and restart the app.</p>
+<button id="refresh" type="button">Refresh status</button><p class="note">Status refreshes while this page is visible.</p>
+</main></body></html>

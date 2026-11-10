@@ -1,0 +1,8 @@
+Standalone Umbrel wrapper
+Copyright 2026 LEAP contributors
+
+Wrapper code: MIT; see LICENSE.
+
+The Qbit Core runtime is obtained from its upstream release under the terms in COPYING.qbit. The archive and binary checksums are recorded in runtime.lock.json.
+
+Container base images and language/runtime dependencies retain their upstream licenses.
