@@ -5,6 +5,7 @@ if [ "${1:-}" = --version ]; then exec /opt/qbit/bin/qbitd --version; fi
 case "${QBIT_CHAIN:-}" in main|testnet4) ;; *) exit 2 ;; esac
 case "${QBIT_NETWORK_ACTIVE:-1}" in 0|1) ;; *) exit 2 ;; esac
 umask 077
+fresh_data=0
 [ ! -L /data/.network ] && [ ! -L /auth/.cookie ] || exit 2
 if [ -f /data/.network ]; then
   [ "$(cat /data/.network)" = "$QBIT_CHAIN" ] || {
@@ -16,10 +17,11 @@ else
     printf '%s\n' 'Existing unmarked data requires a reviewed migration.' >&2; exit 2;
   }
   printf '%s\n' "$QBIT_CHAIN" > /data/.network
+  fresh_data=1
 fi
 network_active="${QBIT_NETWORK_ACTIVE:-1}"
 [ ! -L /settings/network-active ] || exit 2
-if [ -e /settings/network-active ]; then
+if [ "$fresh_data" = 0 ] && [ -e /settings/network-active ]; then
   [ -f /settings/network-active ] && [ "$(wc -c < /settings/network-active)" -le 64 ] || exit 2
   IFS=: read -r saved_chain saved_default saved_active saved_extra < /settings/network-active
   [ "$saved_chain" = "$QBIT_CHAIN" ] && [ -z "$saved_extra" ] || exit 2

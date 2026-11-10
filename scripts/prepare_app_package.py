@@ -41,7 +41,7 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
               "tmpfs": ["/tmp:rw,nosuid,nodev,noexec,size=32m,mode=1777"]}
     core = {**shared, "image": core_image, "command": ["serve"],
             "environment": {"QBIT_CHAIN": chain, "QBIT_NETWORK_ACTIVE": "${QBIT_NETWORK_ACTIVE:-1}"},
-            "volumes": ["${APP_DATA_DIR}/data/core:/data", "${APP_DATA_DIR}/data/auth:/auth", "${APP_DATA_DIR}/data/control:/settings"],
+            "volumes": ["${APP_DATA_DIR}/data/core:/data", "${APP_DATA_DIR}/data/auth:/auth", "control:/settings"],
             "stop_grace_period": "2m", "mem_limit": "1536m", "cpus": 2,
             "healthcheck": {"test": ["CMD", "/opt/qbit/bin/qbit-cli", "-chain=" + chain,
                           "-datadir=/data", "-rpcport=18443", "-rpccookiefile=/auth/.cookie",
@@ -57,7 +57,7 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
                               "QBIT_UI_TOKEN": "${" + prefix + "_UI_TOKEN}",
                               "QBIT_CONTROL_TOKEN": "${" + prefix + "_CONTROL_TOKEN}",
                               "QBIT_NETWORK_ACTIVE": "${QBIT_NETWORK_ACTIVE:-1}"},
-              "volumes": ["${APP_DATA_DIR}/data/auth:/auth:ro", "${APP_DATA_DIR}/data/control:/settings"],
+              "volumes": ["${APP_DATA_DIR}/data/auth:/auth:ro", "control:/settings"],
               "depends_on": {"core": {"condition": "service_healthy", "restart": True}},
               "healthcheck": health}
     ui = {**shared, "image": service_image, "command": ["ui"],
@@ -71,7 +71,7 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
           "healthcheck": {**health, "test": ["CMD", "python", "-c",
               "from urllib.request import urlopen; urlopen('http://127.0.0.1:8080/healthz',timeout=2).close()"]}}
     compose = {"services": {"app_proxy": {"environment": {"APP_HOST": app_id + "_ui_1", "APP_PORT": 8080}},
-                            "core": core, "broker": broker, "ui": ui}}
+                            "core": core, "broker": broker, "ui": ui}, "volumes": {"control": {}}}
     manifest = {"manifestVersion": 2.0, "id": app_id, "storage": {"dataRoot": "data"},
                 "environment": [{"name": "QBIT_NETWORK_ACTIVE", "services": ["core", "broker"], "default": "1", "options": ["0", "1"],
                   "note": "1 starts peer synchronization. The dashboard switch saves a choice across restarts; changing this setting resets that choice."}],
@@ -87,7 +87,7 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
                 "icon": icon_url, "gallery": [], "path": "", "defaultUsername": "operator", "deterministicPassword": True,
                 "submitter": "QBitLeap"}
     output.mkdir(parents=True)
-    for directory in ("core", "auth", "control"):
+    for directory in ("core", "auth"):
         path = output / "data" / directory
         path.mkdir(parents=True)
         (path / ".gitkeep").write_text("")

@@ -275,7 +275,7 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(services["app_proxy"]["environment"]["APP_HOST"], "custom-core_ui_1")
             self.assertEqual(services["broker"]["network_mode"], "service:core")
             self.assertNotIn("volumes", services["ui"])
-            self.assertEqual(services["broker"]["volumes"], ["${APP_DATA_DIR}/data/auth:/auth:ro", "${APP_DATA_DIR}/data/control:/settings"])
+            self.assertEqual(services["broker"]["volumes"], ["${APP_DATA_DIR}/data/auth:/auth:ro", "control:/settings"])
             for name in ("core", "broker", "ui"):
                 self.assertNotIn("ports", services[name])
                 self.assertEqual(services[name]["cap_drop"], ["ALL"])

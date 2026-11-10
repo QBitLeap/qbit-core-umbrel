@@ -62,6 +62,11 @@ class NetworkPolicyTests(unittest.TestCase):
             self.assertEqual((settings / "network-active").read_text(), "main:0:0\n")
             environment["QBIT_NETWORK_ACTIVE"] = "1"
             self.assertIn("-networkactive=1", start())
+            # An uninstalled app may leave its volume behind. A fresh data
+            # directory must start with the default rather than an old pause.
+            (settings / "network-active").write_text("main:1:0\n")
+            (data / ".network").unlink()
+            self.assertIn("-networkactive=1", start())
 
     def test_invalid_choice_identity_or_link_never_mutates_core(self):
         with tempfile.TemporaryDirectory() as name:

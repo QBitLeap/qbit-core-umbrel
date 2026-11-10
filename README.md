@@ -28,8 +28,8 @@ This is a separate app control password, not the Umbrel account password.
 The control session stays in an HttpOnly cookie and expires after eight hours.
 Read/API credentials cannot change networking or access wallets.
 
-The networking choice is saved in this app's own `data/control` directory and
-survives restarts. `QBIT_NETWORK_ACTIVE` sets the initial/default choice;
+The networking choice is saved in this app's own `control` volume and
+survives restarts and app updates. A fresh chain directory uses the default. `QBIT_NETWORK_ACTIVE` sets the initial/default choice;
 changing that environment value resets a previously saved dashboard choice.
 The broker's Core-cookie mount remains read-only; the UI has no cookie mount.
 
