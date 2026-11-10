@@ -270,6 +270,9 @@ class PackageTests(unittest.TestCase):
             services = json.loads((destination / "docker-compose.yml").read_text())["services"]
             self.assertEqual(manifest["id"], destination.name)
             self.assertEqual(manifest["storage"], {"dataRoot": "data"})
+            settings = {item["name"]: item["default"] for item in manifest["environment"]}
+            self.assertEqual(settings["QBIT_WALLET_ENABLED"], "1")
+            self.assertEqual(services["core"]["environment"]["QBIT_WALLET_ENABLED"], "${QBIT_WALLET_ENABLED:-1}")
             self.assertNotIn("submission", manifest)
             self.assertEqual(manifest["icon"], "https://raw.githubusercontent.com/QBitLeap/qbit-core-umbrel/main/icon.svg")
             self.assertEqual(services["app_proxy"]["environment"]["APP_HOST"], "custom-core_ui_1")

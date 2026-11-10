@@ -4,7 +4,7 @@ if [ "${1:-}" = --version ]; then exec /opt/qbit/bin/qbitd --version; fi
 [ "${1:-}" = serve ] && [ "$#" = 1 ] || exit 2
 case "${QBIT_CHAIN:-}" in main|testnet4) ;; *) exit 2 ;; esac
 case "${QBIT_NETWORK_ACTIVE:-1}" in 0|1) ;; *) exit 2 ;; esac
-case "${QBIT_WALLET_ENABLED:-0}" in
+case "${QBIT_WALLET_ENABLED:-1}" in
   0) disable_wallet=1 ;;
   1) disable_wallet=0 ;;
   *) exit 2 ;;

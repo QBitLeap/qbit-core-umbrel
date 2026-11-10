@@ -41,7 +41,7 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
               "tmpfs": ["/tmp:rw,nosuid,nodev,noexec,size=32m,mode=1777"]}
     core = {**shared, "image": core_image, "command": ["serve"],
             "environment": {"QBIT_CHAIN": chain, "QBIT_NETWORK_ACTIVE": "${QBIT_NETWORK_ACTIVE:-1}",
-                            "QBIT_WALLET_ENABLED": "${QBIT_WALLET_ENABLED:-0}"},
+                            "QBIT_WALLET_ENABLED": "${QBIT_WALLET_ENABLED:-1}"},
             "volumes": ["${APP_DATA_DIR}/data/core:/data", "${APP_DATA_DIR}/data/auth:/auth", "control:/settings"],
             "stop_grace_period": "2m", "mem_limit": "1536m", "cpus": 2,
             "healthcheck": {"test": ["CMD", "/opt/qbit/bin/qbit-cli", "-chain=" + chain,
@@ -75,15 +75,15 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
     manifest = {"manifestVersion": 2.0, "id": app_id, "storage": {"dataRoot": "data"},
                 "environment": [{"name": "QBIT_NETWORK_ACTIVE", "services": ["core", "broker"], "default": "1", "options": ["0", "1"],
                   "note": "1 starts peer synchronization. The dashboard switch saves a choice across restarts; changing this setting resets that choice."},
-                  {"name": "QBIT_WALLET_ENABLED", "services": ["core"], "default": "0", "options": ["0", "1"],
-                   "note": "Enable local Core wallets for LEAP and qord terminal commands."}],
+                  {"name": "QBIT_WALLET_ENABLED", "services": ["core"], "default": "1", "options": ["0", "1"],
+                   "note": "Local wallets are enabled for LEAP and qord terminal commands. Set 0 to disable them."}],
                 "category": "finance", "name": "Qbit Core" + (" · Testnet4" if chain == "testnet4" else ""),
                 "version": package_version, "tagline": "Your own Qbit node and authenticated indexer reads",
                 "description": "Run an independent Qbit Core node with a browser status page. "
                     "Peer synchronization starts automatically. Pause or resume it with the dashboard switch. "
-                    "Local Core wallets are optional. Compatible indexers use authenticated read RPC. "
+                    "Local Core wallets are enabled by default. Compatible indexers use authenticated read RPC. "
                     "Each instance keeps its own network-specific data. This is an amd64 package candidate.",
-                "releaseNotes": "Configurable minute refresh, explicit sync progress, saved networking switch and automatic peer synchronization for new nodes.", "developer": "QBitLeap", "website": "https://github.com/Qbit-Org/qbit",
+                "releaseNotes": "Local wallets start automatically for LEAP and qord terminal commands.", "developer": "QBitLeap", "website": "https://github.com/Qbit-Org/qbit",
                 "dependencies": [], "repo": "https://github.com/QBitLeap/qbit-core-umbrel",
                 "support": "https://github.com/QBitLeap/qbit-core-umbrel/issues", "port": port,
                 "icon": icon_url, "gallery": [], "path": "",

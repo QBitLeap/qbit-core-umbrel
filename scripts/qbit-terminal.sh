@@ -36,7 +36,7 @@ index=$(docker inspect --format '{{range .Mounts}}{{if eq .Destination "/data"}}
 }
 if [ "$protocol" != pins ] && ! docker exec "$core" /opt/qbit/bin/qbit-cli "-chain=$chain" -datadir=/data \
     -rpcport=18443 -rpccookiefile=/auth/.cookie listwallets >/dev/null; then
-  printf '%s\n' 'Start Qbit Core with QBIT_WALLET_ENABLED=1 before opening this terminal.' >&2
+  printf '%s\n' 'The matching Qbit Core wallet RPC is unavailable.' >&2
   exit 1
 fi
 
