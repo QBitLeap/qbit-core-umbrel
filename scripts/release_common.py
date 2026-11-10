@@ -10,7 +10,7 @@ import sys
 
 def stage(root, version):
     if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:[-.][a-z0-9][a-z0-9.-]*)?", version) is None or len(version) > 80:
-        raise ValueError("An explicit version such as 0.1.0-alpha.1 is required")
+        raise ValueError("An explicit version such as 0.1.1 is required")
     if sys.platform != "linux" or os.uname().machine != "x86_64":
         raise ValueError("Build on a Linux amd64 Docker host")
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()

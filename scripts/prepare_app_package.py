@@ -21,7 +21,7 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
         raise ValueError("Invalid app ID or Qbit network")
     if type(port) is not int or not 1024 <= port <= 65535:
         raise ValueError("Invalid app UI port")
-    package_version = package_version or "1.0.0"
+    package_version = package_version or "0.1.1"
     if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:[-.][a-z0-9][a-z0-9.-]*)?", package_version) is None:
         raise ValueError("Explicit app package version required")
     for image in (core_image, service_image):
@@ -65,8 +65,7 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
           "environment": {"QBIT_CHAIN": chain,
                           "QBIT_READ_URL": "${" + prefix + "_READ_URL}",
                           "QBIT_UI_TOKEN": "${" + prefix + "_UI_TOKEN}",
-                          "QBIT_CONTROL_TOKEN": "${" + prefix + "_CONTROL_TOKEN}",
-                          "QBIT_CONTROL_PASSWORD": "${APP_PASSWORD}"},
+                          "QBIT_CONTROL_TOKEN": "${" + prefix + "_CONTROL_TOKEN}"},
           "depends_on": {"broker": {"condition": "service_healthy", "restart": True}},
           "healthcheck": {**health, "test": ["CMD", "python", "-c",
               "from urllib.request import urlopen; urlopen('http://127.0.0.1:8080/healthz',timeout=2).close()"]}}
@@ -84,7 +83,7 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
                 "releaseNotes": "Configurable minute refresh, explicit sync progress, saved networking switch and automatic peer synchronization for new nodes.", "developer": "QBitLeap", "website": "https://github.com/Qbit-Org/qbit",
                 "dependencies": [], "repo": "https://github.com/QBitLeap/qbit-core-umbrel",
                 "support": "https://github.com/QBitLeap/qbit-core-umbrel/issues", "port": port,
-                "icon": icon_url, "gallery": [], "path": "", "defaultUsername": "operator", "deterministicPassword": True,
+                "icon": icon_url, "gallery": [], "path": "",
                 "submitter": "QBitLeap"}
     output.mkdir(parents=True)
     for directory in ("core", "auth"):

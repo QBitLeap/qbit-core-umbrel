@@ -12,7 +12,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "app"))
-from service.network import ControlSessions, NetworkPolicy
+from service.network import NetworkPolicy
 from service.rpc import CoreUnavailable, ReadRefused, validate_read
 from service.server import BoundedServer, handler
 
@@ -96,9 +96,9 @@ class ControlHttpTests(unittest.TestCase):
             def set(self, enabled):
                 changes.append(enabled)
                 return {"network": "main", "peerNetworkingEnabled": enabled, "saved": True}
-        self.sessions = ControlSessions("d" * 64)
+        self.gateway = "127.0.0.1"
         self.ui = BoundedServer(("127.0.0.1", 0), handler("ui", None, "main",
-                              network_control=Control(), sessions=self.sessions))
+                              network_control=Control(), gateway_address=lambda: self.gateway))
         self.broker = BoundedServer(("127.0.0.1", 0), handler("broker", None, "main",
                                   {"reader": "a" * 64, "ui": "b" * 64, "controller": "c" * 64}, Control()))
         self.threads = [threading.Thread(target=s.serve_forever, daemon=True) for s in (self.ui, self.broker)]
@@ -116,24 +116,21 @@ class ControlHttpTests(unittest.TestCase):
         connection.close()
         return result
 
-    def test_browser_requires_same_origin_password_cookie_and_csrf(self):
-        origin = "http://127.0.0.1:" + str(self.ui.server_port)
-        base = {"Origin": origin, "X-Qbit-Control": "1"}
-        self.assertEqual(self.post(self.ui, "/api/control/login", {"password": "d" * 64})[0], 403)
-        self.assertEqual(self.post(self.ui, "/api/control/login", {"password": "wrong"}, base)[0], 401)
-        code, value, headers = self.post(self.ui, "/api/control/login", {"password": "d" * 64}, base)
-        self.assertEqual(code, 200)
-        self.assertIn("HttpOnly", headers["Set-Cookie"])
-        self.assertIn("SameSite=Strict", headers["Set-Cookie"])
-        cookie = headers["Set-Cookie"].split(";", 1)[0]
-        authenticated = {**base, "Cookie": cookie, "X-Qbit-CSRF": value["csrf"]}
-        self.assertEqual(self.post(self.ui, "/api/control/network", {"enabled": False}, {**authenticated, "Origin": "http://other.example"})[0], 403)
-        self.assertEqual(self.post(self.ui, "/api/control/network", {"enabled": False}, {**authenticated, "X-Qbit-CSRF": "wrong"})[0], 401)
-        self.assertEqual(self.post(self.ui, "/api/control/network", {"enabled": 1}, authenticated)[0], 400)
+    def test_browser_control_requires_gateway_and_same_origin(self):
+        host = "127.0.0.1:" + str(self.ui.server_port)
+        route = "/api/control/network"
+        headers = {"Origin": f"http://{host}", "X-Forwarded-Host": host,
+                   "X-Forwarded-Proto": "http", "X-Qbit-Control": "1"}
+        self.assertEqual(self.post(self.ui, route, {"enabled": False})[0], 403)
+        self.gateway = "10.0.0.1"
+        self.assertEqual(self.post(self.ui, route, {"enabled": False}, headers)[0], 403)
+        self.gateway = "127.0.0.1"
+        self.assertEqual(self.post(self.ui, route, {"enabled": False},
+                                   {**headers, "Origin": "http://other.example"})[0], 403)
+        self.assertEqual(self.post(self.ui, route, {"enabled": 1}, headers)[0], 400)
         self.assertEqual(self.changes, [])
-        self.assertEqual(self.post(self.ui, "/api/control/network", {"enabled": False}, authenticated)[0], 200)
+        self.assertEqual(self.post(self.ui, route, {"enabled": False}, headers)[0], 200)
         self.assertEqual(self.changes, [False])
-        self.assertIsNone(ControlSessions("e" * 64).session(cookie))
 
     def test_read_roles_never_gain_network_control_and_control_has_no_general_rpc(self):
         for role, token in (("reader", "a" * 64), ("ui", "b" * 64)):

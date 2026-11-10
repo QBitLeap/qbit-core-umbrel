@@ -1,17 +1,13 @@
 """A separate, narrowly scoped networking control; never an indexer read method."""
 
 import base64
-import hashlib
-import hmac
-from http.cookies import SimpleCookie, CookieError
 import json
 import os
 from pathlib import Path
-import secrets
+import socket
 import stat
 import tempfile
 import threading
-import time
 from urllib.request import Request
 
 from .rpc import CoreUnavailable, GatewayClient
@@ -91,44 +87,14 @@ class NetworkClient:
             raise CoreUnavailable("Networking change could not be confirmed; refresh status before trying again") from None
 
 
-class ControlSessions:
-    def __init__(self, password):
-        self.password = password
-        self.cookie_name = "qbitleap_control_" + hashlib.sha256(password.encode()).hexdigest()[:12]
-        self.lock = threading.Lock()
-        self.attempts, self.window = 0, time.monotonic()
-
-    def mac(self, value):
-        return hmac.new(self.password.encode(), value.encode(), hashlib.sha256).hexdigest()
-
-    def login(self, password):
-        with self.lock:
-            now = time.monotonic()
-            if now - self.window >= 300:
-                self.attempts, self.window = 0, now
-            if self.attempts >= 10:
-                raise PermissionError("Wait before trying the control password again")
-            self.attempts += 1
-            if not isinstance(password, str) or not hmac.compare_digest(password.encode(), self.password.encode()):
-                return None
-            self.attempts = 0
-        payload = f"{int(time.time()) + 8 * 3600}.{secrets.token_hex(16)}"
-        return payload + "." + self.mac("session:" + payload)
-
-    def session(self, header):
-        if not isinstance(header, str) or len(header) > 4096:
-            return None
-        try:
-            cookies = SimpleCookie(header)
-            value = cookies[self.cookie_name].value
-            expiry, nonce, signature = value.split(".")
-            if (len(value) > 160 or not nonce or len(nonce) != 32 or int(expiry) <= time.time()
-                    or int(expiry) > time.time() + 8 * 3600 + 5
-                    or not hmac.compare_digest(signature, self.mac("session:" + expiry + "." + nonce))):
-                return None
-            return value
-        except (CookieError, KeyError, ValueError, TypeError):
-            return None
-
-    def csrf(self, session):
-        return self.mac("csrf:" + session)
+def bridge_gateway():
+    """The host reaches the UI from the Docker bridge gateway."""
+    try:
+        routes = Path("/proc/net/route").read_text().splitlines()[1:]
+        for route in routes:
+            _, destination, gateway, flags, *_ = route.split()
+            if destination == "00000000" and (int(flags, 16) & 3) == 3:
+                return socket.inet_ntoa(bytes.fromhex(gateway)[::-1])
+    except (OSError, ValueError):
+        return None
+    return None

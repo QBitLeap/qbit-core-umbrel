@@ -1,7 +1,6 @@
 # Qbit Core for Umbrel
 
-Independent Qbit Core app source for umbrelOS 2.0 or newer. This is an amd64
-prerelease. Published images have passed isolated Mainnet/Testnet4 integration;
+Independent Qbit Core app source for umbrelOS 2.0 or newer. This is an amd64 app. Published images have passed isolated Mainnet/Testnet4 integration;
 managed Umbrel installation and real-chain operation acceptance remain pending.
 
 Core cookies stay inside the Core app. Compatible indexers receive an authenticated, method-limited read endpoint.
@@ -23,9 +22,7 @@ Local image configuration IDs are not downloadable registry references.
 New installations start peer synchronization automatically. The dashboard shows
 current blocks, known headers, verification progress and peer connections.
 Use its networking switch to pause or resume; downloaded blocks are preserved.
-Unlock the switch with this app's password shown in Umbrel's App Settings.
-This is a separate app control password, not the Umbrel account password.
-The control session stays in an HttpOnly cookie and expires after eight hours.
+The switch uses Umbrel's app access settings. Open Qbit Core through Umbrel.
 Read/API credentials cannot change networking or access wallets.
 
 The networking choice is saved in this app's own `control` volume and
@@ -48,7 +45,7 @@ python3 -m unittest discover -s tests
 On a Linux amd64 Docker host, from clean committed source:
 
 ```sh
-python3 scripts/release_images.py 0.1.0-alpha.1
+python3 scripts/release_images.py 0.1.1
 ```
 
 That command builds and smoke-checks images. Add `--publish` only after

@@ -10,7 +10,6 @@ import threading
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "app"))
-from service.network import ControlSessions
 from service.server import ASSETS, BoundedServer, handler
 
 
@@ -31,8 +30,11 @@ def main():
     browser = shutil.which("google-chrome") or shutil.which("chromium")
     if not browser:
         raise RuntimeError("Chrome/Chromium required for the isolated UI preview")
-    base = handler("ui", Fixture(), "main", network_control=Control(), sessions=ControlSessions("d" * 64))
+    base = handler("ui", Fixture(), "main", network_control=Control())
     class Preview(base):
+        def gateway_request(self):
+            return True
+
         def do_GET(self):
             if self.path == "/":
                 body = (ASSETS / "index.html").read_bytes().replace(b"YOUR QBIT NODE", b"SYNTHETIC UI TEST FIXTURE")
@@ -53,7 +55,7 @@ def main():
                 capture_output=True, text=True, timeout=35)
             if result.returncode or not output.exists() or output.stat().st_size < 10000:
                 raise RuntimeError("Isolated dashboard rendering failed: " + result.stderr[-1500:])
-            for expected in ('Current block: 120000', '42.00%', 'Refresh interval (minutes)', 'Unlock controls'):
+            for expected in ('Current block: 120000', '42.00%', 'Refresh interval (minutes)', 'Peer networking'):
                 if expected not in result.stdout:
                     raise RuntimeError("Dashboard failed to render " + expected)
             print("PASS: isolated browser rendered live fixture counts, progress, networking and minute refresh controls.")
