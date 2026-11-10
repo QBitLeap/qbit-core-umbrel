@@ -29,6 +29,8 @@ jobs:
         with:
           python-version: '3.13'
       - run: python -m unittest discover -s tests -v
+      - run: node checks/dashboard.test.cjs
+      - run: python checks/render_preview.py
       - name: Login for an explicitly published release
         if: inputs.publish
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
@@ -59,3 +61,4 @@ jobs:
             .release/*/core/release-context.json
             .release/*/context/source-manifest.json
             .release/*/dependency-notices.json
+            .release/ui-preview.png

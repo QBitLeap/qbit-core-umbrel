@@ -40,7 +40,7 @@ def release(output):
         stream.write("\n!start-core.sh\n!wrapper-LICENSE\n!wrapper-NOTICE\n")
     recipe = (context / "Dockerfile").read_text()
     recipe += ("\nCOPY wrapper-LICENSE /usr/share/doc/qbit-app/LICENSE\nCOPY wrapper-NOTICE /usr/share/doc/qbit-app/NOTICE\n"
-               "USER 0:0\nRUN mkdir -p /auth && chown 1000:1000 /auth && chmod 0700 /auth\n"
+               "USER 0:0\nRUN mkdir -p /auth /settings && chown 1000:1000 /auth /settings && chmod 0700 /auth /settings\n"
                "COPY --chmod=0555 start-core.sh /opt/qbit/start-core.sh\nUSER 1000:1000\n"
                'ENTRYPOINT ["/bin/sh", "/opt/qbit/start-core.sh"]\nCMD ["--version"]\n')
     (context / "Dockerfile").write_text(recipe)

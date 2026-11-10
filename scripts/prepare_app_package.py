@@ -40,8 +40,8 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
               "pids_limit": 128, "init": True,
               "tmpfs": ["/tmp:rw,nosuid,nodev,noexec,size=32m,mode=1777"]}
     core = {**shared, "image": core_image, "command": ["serve"],
-            "environment": {"QBIT_CHAIN": chain, "QBIT_NETWORK_ACTIVE": "${QBIT_NETWORK_ACTIVE:-0}"},
-            "volumes": ["${APP_DATA_DIR}/data/core:/data", "${APP_DATA_DIR}/data/auth:/auth"],
+            "environment": {"QBIT_CHAIN": chain, "QBIT_NETWORK_ACTIVE": "${QBIT_NETWORK_ACTIVE:-1}"},
+            "volumes": ["${APP_DATA_DIR}/data/core:/data", "${APP_DATA_DIR}/data/auth:/auth", "${APP_DATA_DIR}/data/control:/settings"],
             "stop_grace_period": "2m", "mem_limit": "1536m", "cpus": 2,
             "healthcheck": {"test": ["CMD", "/opt/qbit/bin/qbit-cli", "-chain=" + chain,
                           "-datadir=/data", "-rpcport=18443", "-rpccookiefile=/auth/.cookie",
@@ -54,36 +54,40 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
               "network_mode": "service:core", "mem_limit": "1024m", "cpus": 2,
               "environment": {"QBIT_CHAIN": chain,
                               "QBIT_READ_TOKEN": "${" + prefix + "_READ_TOKEN}",
-                              "QBIT_UI_TOKEN": "${" + prefix + "_UI_TOKEN}"},
-              "volumes": ["${APP_DATA_DIR}/data/auth:/auth:ro"],
+                              "QBIT_UI_TOKEN": "${" + prefix + "_UI_TOKEN}",
+                              "QBIT_CONTROL_TOKEN": "${" + prefix + "_CONTROL_TOKEN}",
+                              "QBIT_NETWORK_ACTIVE": "${QBIT_NETWORK_ACTIVE:-1}"},
+              "volumes": ["${APP_DATA_DIR}/data/auth:/auth:ro", "${APP_DATA_DIR}/data/control:/settings"],
               "depends_on": {"core": {"condition": "service_healthy", "restart": True}},
               "healthcheck": health}
     ui = {**shared, "image": service_image, "command": ["ui"],
           "mem_limit": "128m", "cpus": 0.5,
           "environment": {"QBIT_CHAIN": chain,
                           "QBIT_READ_URL": "${" + prefix + "_READ_URL}",
-                          "QBIT_UI_TOKEN": "${" + prefix + "_UI_TOKEN}"},
+                          "QBIT_UI_TOKEN": "${" + prefix + "_UI_TOKEN}",
+                          "QBIT_CONTROL_TOKEN": "${" + prefix + "_CONTROL_TOKEN}",
+                          "QBIT_CONTROL_PASSWORD": "${APP_PASSWORD}"},
           "depends_on": {"broker": {"condition": "service_healthy", "restart": True}},
           "healthcheck": {**health, "test": ["CMD", "python", "-c",
               "from urllib.request import urlopen; urlopen('http://127.0.0.1:8080/healthz',timeout=2).close()"]}}
     compose = {"services": {"app_proxy": {"environment": {"APP_HOST": app_id + "_ui_1", "APP_PORT": 8080}},
                             "core": core, "broker": broker, "ui": ui}}
     manifest = {"manifestVersion": 2.0, "id": app_id, "storage": {"dataRoot": "data"},
-                "environment": [{"name": "QBIT_NETWORK_ACTIVE", "services": ["core"], "default": "0",
-                  "note": "0 keeps peer networking off. Set 1 to synchronize after checking storage and power readiness."}],
+                "environment": [{"name": "QBIT_NETWORK_ACTIVE", "services": ["core", "broker"], "default": "1", "options": ["0", "1"],
+                  "note": "1 starts peer synchronization. The dashboard switch saves a choice across restarts; changing this setting resets that choice."}],
                 "category": "finance", "name": "Qbit Core" + (" · Testnet4" if chain == "testnet4" else ""),
                 "version": package_version, "tagline": "Your own Qbit node and authenticated indexer reads",
                 "description": "Run an independent Qbit Core node with a browser status page. "
-                    "Peer networking starts disabled; enable it in app settings to synchronize. "
+                    "Peer synchronization starts automatically. Pause or resume it with the dashboard switch. "
                     "Wallets are disabled. Compatible indexers use authenticated read RPC; Core cookies stay private. "
                     "Each instance keeps its own network-specific data. This is an amd64 package candidate.",
-                "releaseNotes": "", "developer": "QBitLeap", "website": "https://github.com/Qbit-Org/qbit",
+                "releaseNotes": "Configurable minute refresh, explicit sync progress, saved networking switch and automatic peer synchronization for new nodes.", "developer": "QBitLeap", "website": "https://github.com/Qbit-Org/qbit",
                 "dependencies": [], "repo": "https://github.com/QBitLeap/qbit-core-umbrel",
                 "support": "https://github.com/QBitLeap/qbit-core-umbrel/issues", "port": port,
-                "icon": icon_url, "gallery": [], "path": "", "defaultUsername": "", "defaultPassword": "",
+                "icon": icon_url, "gallery": [], "path": "", "defaultUsername": "operator", "deterministicPassword": True,
                 "submitter": "QBitLeap"}
     output.mkdir(parents=True)
-    for directory in ("core", "auth"):
+    for directory in ("core", "auth", "control"):
         path = output / "data" / directory
         path.mkdir(parents=True)
         (path / ".gitkeep").write_text("")
@@ -92,7 +96,8 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
     exports = (f'export {prefix}_READ_URL="http://{app_id}_core_1:8081/"\n'
                f'export {prefix}_READ_USER="reader"\n'
                f'export {prefix}_READ_TOKEN="$(derive_entropy "${{app_entropy_identifier}}-read-rpc")"\n'
-               f'export {prefix}_UI_TOKEN="$(derive_entropy "${{app_entropy_identifier}}-status-ui")"\n')
+               f'export {prefix}_UI_TOKEN="$(derive_entropy "${{app_entropy_identifier}}-status-ui")"\n'
+               f'export {prefix}_CONTROL_TOKEN="$(derive_entropy "${{app_entropy_identifier}}-network-control")"\n')
     (output / "exports.sh").write_text(exports)
     shutil.copyfile(ROOT / "icon.svg", output / "icon.svg")
     report = {"format": "qbit-core-app-package-v1", "appId": app_id, "chain": chain,

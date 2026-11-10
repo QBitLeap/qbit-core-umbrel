@@ -20,7 +20,22 @@ https://github.com/QBitLeap/umbrel-app-store
 The store is not ready until its image lock contains published registry
 manifest digests and the complete Mainnet/Testnet4 integration checks pass.
 Local image configuration IDs are not downloadable registry references.
-Peer networking starts off. Enable QBIT_NETWORK_ACTIVE in app settings when ready to synchronize.
+New installations start peer synchronization automatically. The dashboard shows
+current blocks, known headers, verification progress and peer connections.
+Use its networking switch to pause or resume; downloaded blocks are preserved.
+Unlock the switch with this app's password shown in Umbrel's App Settings.
+This is a separate app control password, not the Umbrel account password.
+The control session stays in an HttpOnly cookie and expires after eight hours.
+Read/API credentials cannot change networking or access wallets.
+
+The networking choice is saved in this app's own `data/control` directory and
+survives restarts. `QBIT_NETWORK_ACTIVE` sets the initial/default choice;
+changing that environment value resets a previously saved dashboard choice.
+The broker's Core-cookie mount remains read-only; the UI has no cookie mount.
+
+Dashboard refresh defaults to one minute. Set another whole number of minutes
+on the page; the minimum is one minute. The preference is saved in this browser,
+refreshes stop while the page is hidden, and requests never overlap.
 
 ## Source checks
 

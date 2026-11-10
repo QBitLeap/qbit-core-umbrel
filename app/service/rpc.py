@@ -214,6 +214,7 @@ def status(client, chain):
             "verificationProgress": info.get("verificationprogress"),
             "initialBlockDownload": info.get("initialblockdownload"),
             "txindexSynced": txindex.get("synced", False),
+            "txindexHeight": txindex.get("best_block_height"),
             "peerNetworkingEnabled": peers.get("networkactive", False),
             "connections": peers.get("connections", 0), "chainAndIndexReady": ready,
             "transactionRoutingAccepted": False}
