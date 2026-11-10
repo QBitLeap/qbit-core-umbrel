@@ -60,7 +60,7 @@ case "$protocol" in
       "$index/app-qord.yaml")
     export QORD_SERVER_PASSWORD
     set -- "$@" --mount "type=bind,src=$index,dst=/data" \
-      -e "QORD_CHAIN=$qord_chain" -e QORD_QBIT_RPC_URL=http://127.0.0.1:18443/ \
+      -e "QORD_CHAIN=$qord_chain" -e QORD_QBIT_RPC_URL=http://127.0.0.1:18443 \
       -e QORD_COOKIE_FILE=/auth/.cookie -e QORD_CONFIG_DIR=/tmp -e QORD_DATA_DIR=/data \
       -e "QORD_SERVER_URL=http://qbitleap-qord-${chain}_transport_1:8787" \
       -e QORD_SERVER_USERNAME=index -e QORD_SERVER_PASSWORD ;;
