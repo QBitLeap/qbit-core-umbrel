@@ -1,5 +1,9 @@
 # Qbit Core for Umbrel
 
+| macOS | Windows | Linux | Umbrel |
+| --- | --- | --- | --- |
+| [<img alt="Qbit Core for macOS" src="https://raw.githubusercontent.com/QBitLeap/umbrel-app-store/f02d8c427c868dd1fbbf06bc70b1cea238bca807/assets/platform-icons/qbit-core/macos.png" width="72">](https://github.com/Qbit-Org/qbit/releases/tag/v1.0.0) | [<img alt="Qbit Core for Windows" src="https://raw.githubusercontent.com/QBitLeap/umbrel-app-store/f02d8c427c868dd1fbbf06bc70b1cea238bca807/assets/platform-icons/qbit-core/windows.png" width="72">](https://github.com/Qbit-Org/qbit/releases/tag/v1.0.0) | [<img alt="Qbit Core for Linux" src="https://raw.githubusercontent.com/QBitLeap/umbrel-app-store/f02d8c427c868dd1fbbf06bc70b1cea238bca807/assets/platform-icons/qbit-core/linux.png" width="72">](https://github.com/Qbit-Org/qbit/releases/tag/v1.0.0) | [<img alt="Qbit Core for Umbrel" src="https://raw.githubusercontent.com/QBitLeap/umbrel-app-store/f02d8c427c868dd1fbbf06bc70b1cea238bca807/assets/platform-icons/qbit-core/umbrel.png" width="72">](https://github.com/QBitLeap/umbrel-app-store) |
+
 Independent Qbit Core app source for umbrelOS 2.0 or newer. This is an amd64 app. Published images have passed isolated Mainnet/Testnet4 integration;
 managed Umbrel installation and real-chain operation acceptance remain pending.
 
