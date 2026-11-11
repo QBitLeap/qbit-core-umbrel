@@ -95,11 +95,13 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
         (path / ".gitkeep").write_text("")
     for name, data in (("umbrel-app.yml", manifest), ("docker-compose.yml", compose)):
         (output / name).write_text(json.dumps(data, indent=2) + "\n")
+    # Umbrel also sources this file in the caller's app context.
+    entropy = f"app-{app_id}-seed"
     exports = (f'export {prefix}_READ_URL="http://{app_id}_core_1:8081/"\n'
                f'export {prefix}_READ_USER="reader"\n'
-               f'export {prefix}_READ_TOKEN="$(derive_entropy "${{app_entropy_identifier}}-read-rpc")"\n'
-               f'export {prefix}_UI_TOKEN="$(derive_entropy "${{app_entropy_identifier}}-status-ui")"\n'
-               f'export {prefix}_CONTROL_TOKEN="$(derive_entropy "${{app_entropy_identifier}}-network-control")"\n')
+               f'export {prefix}_READ_TOKEN="$(derive_entropy "{entropy}-read-rpc")"\n'
+               f'export {prefix}_UI_TOKEN="$(derive_entropy "{entropy}-status-ui")"\n'
+               f'export {prefix}_CONTROL_TOKEN="$(derive_entropy "{entropy}-network-control")"\n')
     (output / "exports.sh").write_text(exports)
     shutil.copyfile(ROOT / "scripts/qbit-terminal.sh", output / "qbit-terminal.sh")
     shutil.copyfile(ROOT / "icon.svg", output / "icon.svg")
