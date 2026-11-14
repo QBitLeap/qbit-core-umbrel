@@ -30,7 +30,7 @@ def build(root, context, component, version, revision, publish):
     tag = repository + ":" + version
     subprocess.run(["docker", "build", "--platform", "linux/amd64", "--tag", tag,
         "--label", "org.opencontainers.image.title=" + component,
-        "--label", "org.opencontainers.image.source=https://github.com/QBitLeap/" + root.name,
+        "--label", 'org.opencontainers.image.source=https://github.com/QBitLeap/qbit-core',
         "--label", "org.opencontainers.image.revision=" + revision,
         "--label", "org.opencontainers.image.authors=LEAP contributors", str(context)], check=True)
     info = json.loads(subprocess.check_output(["docker", "image", "inspect", tag], text=True))[0]

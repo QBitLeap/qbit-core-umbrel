@@ -274,7 +274,7 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(settings["QBIT_WALLET_ENABLED"], "1")
             self.assertEqual(services["core"]["environment"]["QBIT_WALLET_ENABLED"], "${QBIT_WALLET_ENABLED:-1}")
             self.assertNotIn("submission", manifest)
-            self.assertEqual(manifest["icon"], "https://raw.githubusercontent.com/QBitLeap/qbit-core-umbrel/main/icon.svg")
+            self.assertEqual(manifest["icon"], "https://raw.githubusercontent.com/QBitLeap/qbit-core/main/icon.svg")
             self.assertEqual(services["app_proxy"]["environment"]["APP_HOST"], "custom-core_ui_1")
             self.assertEqual(services["broker"]["network_mode"], "service:core")
             self.assertNotIn("volumes", services["ui"])

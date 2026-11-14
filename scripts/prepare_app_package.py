@@ -27,7 +27,7 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
     for image in (core_image, service_image):
         if not IMAGE.fullmatch(image) and not (local_fixture and re.fullmatch(r"sha256:[0-9a-f]{64}", image)):
             raise ValueError("Pinned image references are required")
-    icon_url = icon_url or "https://raw.githubusercontent.com/QBitLeap/qbit-core-umbrel/main/icon.svg"
+    icon_url = icon_url or "https://raw.githubusercontent.com/QBitLeap/qbit-core/main/icon.svg"
     icon = urlsplit(icon_url)
     if icon.scheme not in {"http", "https"} or not icon.hostname or icon.username or icon.password or icon.fragment:
         raise ValueError("Expected a hosted icon URL without credentials")
@@ -84,8 +84,8 @@ def prepare(output, app_id, chain, port, core_image, service_image, local_fixtur
                     "Local Core wallets are enabled by default. Compatible indexers use authenticated read RPC. "
                     "Each instance keeps its own network-specific data. This is an amd64 package candidate.",
                 "releaseNotes": "Local wallets start automatically for LEAP and qord terminal commands.", "developer": "QBitLeap", "website": "https://github.com/Qbit-Org/qbit",
-                "dependencies": [], "repo": "https://github.com/QBitLeap/qbit-core-umbrel",
-                "support": "https://github.com/QBitLeap/qbit-core-umbrel/issues", "port": port,
+                "dependencies": [], "repo": "https://github.com/QBitLeap/qbit-core",
+                "support": "https://github.com/QBitLeap/qbit-core/issues", "port": port,
                 "icon": icon_url, "gallery": [], "path": "",
                 "submitter": "QBitLeap"}
     output.mkdir(parents=True)
