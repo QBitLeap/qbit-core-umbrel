@@ -1,5 +1,8 @@
 name: Broker services release
 on:
+  push:
+    tags:
+      - 'broker-services-v[0-9]*'
   workflow_dispatch:
     inputs:
       version:
@@ -15,7 +18,7 @@ permissions:
   contents: read
 jobs:
   broker:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/broker-services-v')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -32,12 +35,12 @@ jobs:
         run: python -B -m unittest discover -s tests -v
       - name: Build broker overlay and test actual image
         env:
-          BROKER_VERSION: ${{ inputs.version }}
+          BROKER_VERSION: ${{ inputs.version || github.ref_name }}
         run: |
           python - <<'PY'
           import os,re,subprocess,json,hashlib
           from pathlib import Path
-          version=os.environ['BROKER_VERSION']
+          version=os.environ['BROKER_VERSION'].removeprefix('broker-services-v')
           if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+(?:[-.][a-z0-9][a-z0-9.-]*)?',version):raise SystemExit('Explicit version required')
           root=Path('.release/broker');context=root/'context';context.mkdir(parents=True)
           (context/'rpc.py').write_bytes(Path('app/service/rpc.py').read_bytes())
@@ -53,14 +56,14 @@ jobs:
           (root/'native.json').write_text(json.dumps({'image':image,'imageId':image_id,'sourceRevision':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'rpcSha256':hashlib.sha256((context/'rpc.py').read_bytes()).hexdigest(),'fixturesPassed':True,'coreDaemonBuilt':False},indent=2)+'\n')
           PY
       - name: Authenticate explicit publication
-        if: inputs.publish
+        if: inputs.publish || startsWith(github.ref, 'refs/tags/broker-services-v')
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish and verify digest pull
-        if: inputs.publish
+        if: inputs.publish || startsWith(github.ref, 'refs/tags/broker-services-v')
         run: |
           python - <<'PY'
           import json,subprocess
