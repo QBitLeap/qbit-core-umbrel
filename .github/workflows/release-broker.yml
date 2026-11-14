@@ -1,0 +1,83 @@
+name: Broker services release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Broker services version
+        required: true
+        type: string
+      publish:
+        description: Publish tested broker image to GHCR
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+jobs:
+  broker:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.13'
+      - name: Repository checks
+        run: python -B -m unittest discover -s tests -v
+      - name: Build broker overlay and test actual image
+        env:
+          BROKER_VERSION: ${{ inputs.version }}
+        run: |
+          python - <<'PY'
+          import os,re,subprocess,json,hashlib
+          from pathlib import Path
+          version=os.environ['BROKER_VERSION']
+          if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+(?:[-.][a-z0-9][a-z0-9.-]*)?',version):raise SystemExit('Explicit version required')
+          root=Path('.release/broker');context=root/'context';context.mkdir(parents=True)
+          (context/'rpc.py').write_bytes(Path('app/service/rpc.py').read_bytes())
+          (context/'Dockerfile').write_text('FROM ghcr.io/qbitleap/qbit-core-services@sha256:8f6f91e8fbcdc59b67fb7cffd5bc7c105e2b9ea40957444838a6f7a32cac90b8\nCOPY --chmod=0444 rpc.py /opt/qbit-app/service/rpc.py\nUSER 1000:1000\n')
+          image='ghcr.io/qbitleap/qbit-core-services:'+version
+          subprocess.run(['docker','build','--platform','linux/amd64','--tag',image,str(context)],check=True)
+          import shutil
+          fixtures=root/'fixtures';(fixtures/'tests').mkdir(parents=True)
+          for name in ('test_app_services.py','test_profile_reads.py'):shutil.copy2(Path('tests')/name,fixtures/'tests'/name)
+          shutil.copytree('scripts',fixtures/'scripts');shutil.copy2('icon.svg',fixtures/'icon.svg')
+          subprocess.run(['docker','run','--rm','--network','none','--read-only','--user','1000:1000','--cap-drop','ALL','--security-opt','no-new-privileges:true','--memory','256m','--pids-limit','64','--tmpfs','/tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777','--mount','type=bind,source='+str(fixtures.resolve())+',target=/validation,readonly','--entrypoint','python3',image,'-B','-m','unittest','discover','-s','/validation/tests','-v'],check=True)
+          image_id=subprocess.check_output(['docker','image','inspect','--format','{{.Id}}',image],text=True).strip()
+          (root/'native.json').write_text(json.dumps({'image':image,'imageId':image_id,'sourceRevision':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'rpcSha256':hashlib.sha256((context/'rpc.py').read_bytes()).hexdigest(),'fixturesPassed':True,'coreDaemonBuilt':False},indent=2)+'\n')
+          PY
+      - name: Authenticate explicit publication
+        if: inputs.publish
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish and verify digest pull
+        if: inputs.publish
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          p=Path('.release/broker/native.json');v=json.loads(p.read_text());image=v['image']
+          subprocess.run(['docker','push',image],check=True)
+          refs=json.loads(subprocess.check_output(['docker','image','inspect','--format','{{json .RepoDigests}}',image],text=True))
+          refs=[r for r in refs if r.startswith('ghcr.io/qbitleap/qbit-core-services@sha256:')]
+          if len(refs)!=1:raise SystemExit('Unique public image digest required')
+          subprocess.run(['docker','pull',refs[0]],check=True)
+          if subprocess.check_output(['docker','image','inspect','--format','{{.Id}}',refs[0]],text=True).strip()!=v['imageId']:raise SystemExit('Public pull configuration differs')
+          v.update(published=True,imageReference=refs[0],registryPullAccepted=True,anonymousPullAccepted=False)
+          Path('.release/broker/published.json').write_text(json.dumps(v,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: broker-release-receipts
+          path: .release/broker/*.json
+          if-no-files-found: ignore

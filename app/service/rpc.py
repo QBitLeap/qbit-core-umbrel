@@ -81,6 +81,17 @@ def validate_read(method, params):
     elif method == "gettxout":
         valid = (len(params) in (2, 3) and block_id(params[0]) and integer(params[1])
                  and (len(params) == 2 or type(params[2]) is bool))
+    elif method == "validateaddress":
+        valid = len(params)==1 and isinstance(params[0],str) and re.fullmatch(r"(?:qb|tq)1z[a-z0-9]{26,96}",params[0]) is not None
+    elif method == "verifydatapqchash":
+        fields={"address","message_hash","signature","pubkey","leaf_script","control_block","leaf_version","proof_mode"}
+        if len(params)==1 and isinstance(params[0],dict) and set(params[0])==fields:
+            proof=params[0]
+            valid=(isinstance(proof['address'],str) and re.fullmatch(r"(?:qb|tq)1z[a-z0-9]{26,96}",proof['address']) is not None
+                   and proof['proof_mode']=='p2mr-pubkey' and type(proof['leaf_version']) is int and 0<=proof['leaf_version']<=255)
+            for key,size in (('message_hash',64),('signature',7360),('pubkey',64),('leaf_script',68)):
+                valid=valid and isinstance(proof[key],str) and re.fullmatch('[0-9a-f]{'+str(size)+'}',proof[key]) is not None
+            valid=valid and isinstance(proof['control_block'],str) and re.fullmatch(r'(?:[0-9a-f]{2}){1,4097}',proof['control_block']) is not None
     elif method == "getrawmempool":
         valid = not params or params == [False]
     if not valid:
